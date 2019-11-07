@@ -1,0 +1,623 @@
+{
+ "cells": [
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "# Decorators"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## Repetitive Code"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 4,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "this code took 3.0026638507843018 seconds to run.\n",
+      "hello\n",
+      "this code, however took 2.0029752254486084 seconds to run.\n",
+      "the beatles\n"
+     ]
+    }
+   ],
+   "source": [
+    "import time\n",
+    "from time import sleep\n",
+    "\n",
+    "def foo():\n",
+    "    start = time.time()\n",
+    "    f = \"hello\"\n",
+    "    sleep(3)\n",
+    "    end = time.time()\n",
+    "    print(f\"this code took {end - start} seconds to run.\")\n",
+    "    return f\n",
+    "    \n",
+    "def bar():\n",
+    "    start = time.time()\n",
+    "    f = \"the beatles\"\n",
+    "    sleep(2)\n",
+    "    end = time.time()\n",
+    "    print(f\"this code, however took {end - start} seconds to run.\")\n",
+    "    return f\n",
+    "    \n",
+    "print(foo())\n",
+    "print(bar())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## there's a better way!"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 49,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "function foo took 1.0017151832580566 seconds to run.\n",
+      "hello\n",
+      "function bar took 0.5008540153503418 seconds to run.\n",
+      "goodbye\n"
+     ]
+    }
+   ],
+   "source": [
+    "def timer(func):\n",
+    "    def wrapper(*args, **kwargs):\n",
+    "        start = time.time()\n",
+    "        f = func(*args, **kwargs)\n",
+    "        end = time.time()\n",
+    "        print(f\"function {func.__name__} took {end - start} seconds to run.\")\n",
+    "        return f\n",
+    "    return wrapper\n",
+    "\n",
+    "@timer\n",
+    "def foo():\n",
+    "    f = \"hello\"\n",
+    "    sleep(1)\n",
+    "    return f\n",
+    "\n",
+    "@timer\n",
+    "def bar():\n",
+    "    f = \"goodbye\"\n",
+    "    sleep(.5)\n",
+    "    return f\n",
+    "\n",
+    "print(foo())\n",
+    "print(bar())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## what the hell is happening?"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### What are objects?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 16,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "this is a\n"
+     ]
+    }
+   ],
+   "source": [
+    "a = \"string\"\n",
+    "a = []\n"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Functions are objects"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 22,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def a():\n",
+    "    print(\"here is the function a\")\n",
+    "\n",
+    "a.atr = \"fred\""
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Functions can take in other functions as arguments"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 18,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "this is a\n",
+      "None\n"
+     ]
+    }
+   ],
+   "source": [
+    "def foo(a):\n",
+    "    print(a())\n",
+    "    \n",
+    "foo(a)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Functions can return the output of other functions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 19,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "this is a\n"
+     ]
+    }
+   ],
+   "source": [
+    "def foo(func):\n",
+    "    return func()\n",
+    "\n",
+    "foo(a)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Functions can return modified versions of other functions"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 27,
+   "metadata": {},
+   "outputs": [],
+   "source": [
+    "def foo(func):\n",
+    "    def wrapper():\n",
+    "        print(\"calling foo first!\")\n",
+    "        f = func()\n",
+    "        print(\"calling something after too!\")\n",
+    "        return f\n",
+    "    return wrapper"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### The @ symbol is just convenient syntax"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 32,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "This is new foo!\n",
+      "here is a function a\n"
+     ]
+    }
+   ],
+   "source": [
+    "def foo(func):\n",
+    "    def wrapper():\n",
+    "        print(\"calling foo first!\")\n",
+    "        f = func()\n",
+    "        print(\"calling something after too!\")\n",
+    "        return f\n",
+    "    return wrapper\n",
+    "\n",
+    "@foo\n",
+    "def a():\n",
+    "    print(\"here is a function a\")\n",
+    "    \n",
+    "a()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## what if your functions take arguments?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 37,
+   "metadata": {},
+   "outputs": [
+    {
+     "ename": "TypeError",
+     "evalue": "wrapper() takes 2 positional arguments but 3 were given",
+     "output_type": "error",
+     "traceback": [
+      "\u001b[1;31m---------------------------------------------------------------------------\u001b[0m",
+      "\u001b[1;31mTypeError\u001b[0m                                 Traceback (most recent call last)",
+      "\u001b[1;32m<ipython-input-37-fdea0c60bccd>\u001b[0m in \u001b[0;36m<module>\u001b[1;34m\u001b[0m\n\u001b[0;32m     16\u001b[0m     \u001b[1;32mreturn\u001b[0m \u001b[0ma\u001b[0m \u001b[1;33m/\u001b[0m \u001b[0mb\u001b[0m \u001b[1;33m/\u001b[0m \u001b[0mc\u001b[0m\u001b[1;33m\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0;32m     17\u001b[0m \u001b[1;33m\u001b[0m\u001b[0m\n\u001b[1;32m---> 18\u001b[1;33m \u001b[0mmultiply_three\u001b[0m\u001b[1;33m(\u001b[0m\u001b[1;36m27\u001b[0m\u001b[1;33m,\u001b[0m \u001b[1;36m9\u001b[0m\u001b[1;33m,\u001b[0m \u001b[1;36m3\u001b[0m\u001b[1;33m)\u001b[0m\u001b[1;33m\u001b[0m\u001b[1;33m\u001b[0m\u001b[0m\n\u001b[0m",
+      "\u001b[1;31mTypeError\u001b[0m: wrapper() takes 2 positional arguments but 3 were given"
+     ]
+    }
+   ],
+   "source": [
+    "def foo(func):\n",
+    "    def wrapper(x, y):\n",
+    "        print(\"calling foo first!\")\n",
+    "        f = func(x, y)\n",
+    "        print(\"calling something after too!\")\n",
+    "        return f\n",
+    "    return wrapper\n",
+    "\n",
+    "# bijan chaotic evil function\n",
+    "@foo\n",
+    "def add(x, y):\n",
+    "    return x - y\n",
+    "\n",
+    "@foo\n",
+    "def multiply_three(a, b, c):\n",
+    "    return a / b / c\n",
+    "\n",
+    "multiply_three(27, 9, 3)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### what is argument unpacking?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 44,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "cool beans\n",
+      "<generator object <genexpr> at 0x109b25660>\n"
+     ]
+    }
+   ],
+   "source": [
+    "a = [4, 4, 4]\n",
+    "b = {'words': 'cool', 'other': 'beans'}\n",
+    "\n",
+    "def multiply_three(a, b, c, words=\"printing\", other=\"now\"):\n",
+    "    print(words, other)\n",
+    "    return a * b * c\n",
+    "\n",
+    "multiply_three(*a, **b)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### decorators that allow function arguments"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 45,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "calling foo first!\n",
+      "calling something after too!\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "1.0"
+      ]
+     },
+     "execution_count": 45,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def foo(func):\n",
+    "    def wrapper(*args, **kwargs):\n",
+    "        print(\"calling foo first!\")\n",
+    "        f = func(*args, **kwargs)\n",
+    "        print(\"calling something after too!\")\n",
+    "        return f\n",
+    "    return wrapper\n",
+    "\n",
+    "# bijan chaotic evil function\n",
+    "@foo\n",
+    "def add(x, y):\n",
+    "    return x - y\n",
+    "\n",
+    "@foo\n",
+    "def multiply_three(a, b, c):\n",
+    "    return a / b / c\n",
+    "\n",
+    "multiply_three(27, 9, 3)"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## can you pass decorators to classes?"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Decorating methods"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 50,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "function area took 2.0002338886260986 seconds to run.\n",
+      "78.53981633974483\n",
+      "31.41592653589793\n"
+     ]
+    }
+   ],
+   "source": [
+    "from math import pi\n",
+    "\n",
+    "class Circle:\n",
+    "    def __init__(self, r):\n",
+    "        self.r = r\n",
+    "        \n",
+    "    @timer\n",
+    "    def area(self):\n",
+    "        sleep(2)\n",
+    "        return pi * self.r ** 2\n",
+    "    \n",
+    "    def circumference(self):\n",
+    "        return 2 * pi * self.r\n",
+    "    \n",
+    "c = Circle(5)\n",
+    "\n",
+    "print(c.area())\n",
+    "print(c.circumference())"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "### Decorating the class itself"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 61,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "circle instanstiated\n",
+      "function Circle took 2.000410795211792 seconds to run.\n",
+      "Calling circle!\n"
+     ]
+    }
+   ],
+   "source": [
+    "from math import pi\n",
+    "\n",
+    "@timer\n",
+    "class Circle:\n",
+    "    def __init__(self, r):\n",
+    "        self.r = r\n",
+    "        sleep(2)\n",
+    "        print('circle instanstiated')\n",
+    "        \n",
+    "    def __call__(self):\n",
+    "        print(\"Calling circle!\")\n",
+    "\n",
+    "    def area(self):\n",
+    "        sleep(2)\n",
+    "        return pi * self.r ** 2\n",
+    "    \n",
+    "    def circumference(self):\n",
+    "        return 2 * pi * self.r\n",
+    "\n",
+    "c = Circle(5)\n",
+    "\n",
+    "c()"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## what if you want to write a decorator with arguments?"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 68,
+   "metadata": {},
+   "outputs": [
+    {
+     "name": "stdout",
+     "output_type": "stream",
+     "text": [
+      "function inner took 3.0994415283203125e-06 seconds to run.\n",
+      "test\n",
+      "test\n",
+      "test\n",
+      "test\n",
+      "test\n"
+     ]
+    },
+    {
+     "data": {
+      "text/plain": [
+       "['test', 'test', 'test', 'test', 'test']"
+      ]
+     },
+     "execution_count": 68,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "def repeat(num):\n",
+    "    def outer(func):\n",
+    "        @timer\n",
+    "        def inner(*args, **kwargs):\n",
+    "            l = (func(*args, **kwargs) for i in range(num))\n",
+    "            return l\n",
+    "        return inner\n",
+    "    return outer\n",
+    "\n",
+    "\n",
+    "@repeat(5)\n",
+    "def return_a_thing(thing):\n",
+    "    print(thing)\n",
+    "    return thing\n",
+    "\n",
+    "list(return_a_thing(\"test\"))"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "## minor things"
+   ]
+  },
+  {
+   "cell_type": "code",
+   "execution_count": 77,
+   "metadata": {},
+   "outputs": [
+    {
+     "data": {
+      "text/plain": [
+       "'a'"
+      ]
+     },
+     "execution_count": 77,
+     "metadata": {},
+     "output_type": "execute_result"
+    }
+   ],
+   "source": [
+    "from functools import wraps\n",
+    "\n",
+    "def timer(func):\n",
+    "    @wraps(func)\n",
+    "    def wrapper(*args, **kwargs):\n",
+    "        start = time.time()\n",
+    "        f = func(*args, **kwargs)\n",
+    "        end = time.time()\n",
+    "        print(f\"function {func.__name__} took {end - start} seconds to run.\")\n",
+    "        return f\n",
+    "    return wrapper\n",
+    "\n",
+    "@timer\n",
+    "def a(x, y):\n",
+    "    return x + y\n",
+    "\n",
+    "a.__name__"
+   ]
+  },
+  {
+   "cell_type": "markdown",
+   "metadata": {},
+   "source": [
+    "https://realpython.com/primer-on-python-decorators/"
+   ]
+  }
+ ],
+ "metadata": {
+  "kernelspec": {
+   "display_name": "python38",
+   "language": "python",
+   "name": "python38"
+  },
+  "language_info": {
+   "codemirror_mode": {
+    "name": "ipython",
+    "version": 3
+   },
+   "file_extension": ".py",
+   "mimetype": "text/x-python",
+   "name": "python",
+   "nbconvert_exporter": "python",
+   "pygments_lexer": "ipython3",
+   "version": "3.8.0"
+  }
+ },
+ "nbformat": 4,
+ "nbformat_minor": 4
+}
